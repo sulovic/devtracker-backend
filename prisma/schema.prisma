@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "client"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_PRODUCTSALES_URL")
+}
+
+model Users {
+  userId        Int                @id @default(autoincrement())
+  firstName     String             @db.VarChar(64)
+  lastName      String             @db.VarChar(64)
+  email         String             @unique @db.VarChar(64)
+  password      String?            @db.VarChar(64)
+  refreshToken  String?            @db.VarChar(512)
+  resetToken    String?            @db.VarChar(64)
+  roles         UserRolesOnUsers[]
+  createdAt     DateTime           @default(now())
+  statusHistory StatusHistory[]
+  comments      Comments[]
+
+  @@index([email])
+}
+
+model UserRoles {
+  roleId   Int                @id @default(autoincrement())
+  roleName String             @db.VarChar(64)
+  users    UserRolesOnUsers[]
+}
+
+model UserRolesOnUsers {
+  userId    Int
+  roleId    Int
+  users     Users?     @relation(fields: [userId], references: [userId])
+  userRoles UserRoles? @relation(fields: [roleId], references: [roleId])
+
+  @@id([userId, roleId])
+}
+
+model Products {
+  productId   Int      @id @default(autoincrement())
+  productName String   @db.VarChar(64)
+  issues      Issues[]
+}
+
+model Types {
+  typeId   Int      @id @default(autoincrement())
+  typeName String   @db.VarChar(64)
+  issues   Issues[]
+}
+
+model Statuses {
+  statusId      Int             @id @default(autoincrement())
+  statusName    String          @db.VarChar(64)
+  issues        Issues[]
+  statusHistory StatusHistory[]
+}
+
+model Issues {
+  issueId       Int             @id @default(autoincrement())
+  issueName     String          @db.VarChar(64)
+  issueDesc     String          @db.VarChar(512)
+  createdAt     DateTime        @default(now())
+  closedAt      DateTime?
+  products      Products        @relation(fields: [productId], references: [productId], onDelete: Cascade, onUpdate: NoAction)
+  productId     Int
+  types         Types           @relation(fields: [typeId], references: [typeId], onDelete: Cascade, onUpdate: NoAction)
+  typeId        Int
+  statuses      Statuses        @relation(fields: [statusId], references: [statusId], onDelete: Cascade, onUpdate: NoAction)
+  statusId      Int
+  statusHistory StatusHistory[]
+  comments      Comments[]
+}
+
+model StatusHistory {
+  statusHistoryId Int      @id @default(autoincrement())
+  createdAt       DateTime @default(now())
+  users           Users    @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: NoAction)
+  userId          Int
+  statuses        Statuses @relation(fields: [statusId], references: [statusId], onDelete: Cascade, onUpdate: NoAction)
+  statusId        Int
+  issues          Issues   @relation(fields: [issueId], references: [issueId], onDelete: Cascade, onUpdate: NoAction)
+  issueId         Int
+}
+
+model Comments {
+  commentId   Int         @id @default(autoincrement())
+  commentText String      @db.VarChar(512)
+  createdAt   DateTime    @default(now())
+  users       Users       @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: NoAction)
+  userId      Int
+  issues      Issues      @relation(fields: [issueId], references: [issueId], onDelete: Cascade, onUpdate: NoAction)
+  issueId     Int
+  documents   Documents[]
+}
+
+model Documents {
+  documentId  Int       @id @default(autoincrement())
+  documentUrl String    @db.VarChar(512)
+  comments    Comments? @relation(fields: [commentId], references: [commentId], onDelete: Cascade, onUpdate: NoAction)
+  commentId   Int?
+}
