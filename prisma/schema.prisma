@@ -20,6 +20,7 @@ model Users {
   createdAt     DateTime           @default(now())
   statusHistory StatusHistory[]
   comments      Comments[]
+  issues        Issues[]
 
   @@index([email])
 }
@@ -51,6 +52,12 @@ model Types {
   issues   Issues[]
 }
 
+model Priority {
+  priorityId   Int      @id @default(autoincrement())
+  priorityName String   @db.VarChar(64)
+  issues       Issues[]
+}
+
 model Statuses {
   statusId      Int             @id @default(autoincrement())
   statusName    String          @db.VarChar(64)
@@ -70,8 +77,14 @@ model Issues {
   typeId        Int
   statuses      Statuses        @relation(fields: [statusId], references: [statusId], onDelete: Cascade, onUpdate: NoAction)
   statusId      Int
+  users         Users           @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: NoAction)
+  userId        Int
+  priority      Priority       @relation(fields: [priorityId], references: [priorityId], onDelete: Cascade, onUpdate: NoAction)
+  priorityId    Int
   statusHistory StatusHistory[]
   comments      Comments[]
+
+  @@index([issueId, issueName, issueDesc, userId, statusId])
 }
 
 model StatusHistory {
@@ -101,4 +114,6 @@ model Documents {
   documentUrl String    @db.VarChar(512)
   comments    Comments? @relation(fields: [commentId], references: [commentId], onDelete: Cascade, onUpdate: NoAction)
   commentId   Int?
+
+  @@index([documentId])
 }

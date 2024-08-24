@@ -115,7 +115,6 @@ router.post("/", checkUserRole(minRoles.users.post), async (req, res) => {
     });
     res.status(201).json(user);
   } catch (err) {
-    console.log(err);
     if (err.code === "P2002") {
       res.status(409).json({ error: "User already exists" });
     } else {
@@ -161,7 +160,7 @@ router.put("/:id", checkUserRole(minRoles.users.put), async (req, res) => {
 
     res.status(200).json(user);
   } catch (err) {
-    res.status(500).json({ error: "Internal Server Error", details: err.message });
+    res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
       await prisma.$disconnect();
@@ -195,7 +194,6 @@ router.delete("/:id", checkUserRole(minRoles.users.delete), async (req, res) => 
 
     res.status(200).json(deletedUser);
   } catch (err) {
-    console.log(err);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {

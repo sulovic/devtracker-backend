@@ -30,15 +30,18 @@ app.use("/refresh", require("./routes/auth/refresh"));
 app.use("/api/products", verifyAccessToken, require("./routes/products"));
 app.use("/api/users", verifyAccessToken, require("./routes/users"));
 app.use("/api/userRoles", verifyAccessToken, require("./routes/userRoles"));
+app.use("/api/statuses", verifyAccessToken, require("./routes/statuses"));
+app.use("/api/priority", verifyAccessToken, require("./routes/priority"));
+app.use("/api/types", verifyAccessToken, require("./routes/types"));
 app.use("/api/uploads", verifyAccessToken, require("./routes/uploads"));
+app.use("/api/issues", verifyAccessToken, require("./routes/issues"));
+
 
 
 
 // Handle errors
 
 app.use((err, req, res, next) => {
-
-  console.log(err);
   if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
     // Handle invalid JSON error
     return res.status(400).json({ error: "Invalid JSON format" });

@@ -7,7 +7,6 @@ const whitelist = [
 
 const corsConfig = {
     origin: (requestOrigin, callback) => {
-        console.log(requestOrigin)
         const isWhitelistedOrigin = whitelist.includes(requestOrigin) || !requestOrigin ;
 
         if (isWhitelistedOrigin) {

@@ -14,6 +14,22 @@ const seedPredefinedData = async () => {
       { statusId: 7, statusName: "Closed" },
     ];
 
+    // Predefined Priorities
+    const priorities = [
+      { priorityId: 1, priorityName: "Low" },
+      { priorityId: 2, priorityName: "Medium" },
+      { priorityId: 3, priorityName: "High" },
+      { priorityId: 4, priorityName: "Critical" },
+    ];
+
+    // Predefined Types
+    const types = [
+      { typeId: 1, typeName: "Bug" },
+      { typeId: 2, typeName: "Improvement" },
+      { typeId: 3, typeName: "New feature" },
+      { typeId: 4, typeName: "New application" },
+    ];
+
     // Predefined UserRoles
     const userRoles = [
       { roleId: 1001, roleName: "Reporter" },
@@ -52,6 +68,24 @@ const seedPredefinedData = async () => {
         where: { statusId: status.statusId },
         update: {},
         create: status,
+      });
+    }
+
+    // Insert Priorities
+    for (const priority of priorities) {
+      await prisma.priority.upsert({
+        where: { priorityId: priority.priorityId },
+        update: {},
+        create: priority,
+      });
+    }
+
+    // Insert Types
+    for (const type of types) {
+      await prisma.types.upsert({
+        where: { typeId: type.typeId },
+        update: {},
+        create: type,
       });
     }
 
