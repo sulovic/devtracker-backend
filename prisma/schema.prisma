@@ -57,7 +57,7 @@ model Priority {
   priorityName String   @db.VarChar(64)
   issues       Issues[]
 }
-
+  
 model Statuses {
   statusId      Int             @id @default(autoincrement())
   statusName    String          @db.VarChar(64)

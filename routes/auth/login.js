@@ -11,10 +11,9 @@ const getUserData = async (email) => {
     where: { email },
     include: {
       roles: true,
-    }
+    },
   });
 };
-
 
 router.post("/", async (req, res) => {
   try {
@@ -43,6 +42,7 @@ router.post("/", async (req, res) => {
       }
 
       const authUser = {
+        userId: foundUser?.userId,
         firstName: foundUser?.firstName,
         lastName: foundUser?.lastName,
         email: foundUser?.email,
@@ -80,6 +80,7 @@ router.post("/", async (req, res) => {
       }
 
       const authUser = {
+        userId: foundUser?.userId,
         firstName: foundUser?.firstName,
         lastName: foundUser?.lastName,
         email: foundUser?.email,

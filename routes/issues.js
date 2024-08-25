@@ -3,9 +3,10 @@ const router = express.Router();
 const { PrismaClient } = require("../prisma/client");
 const prisma = new PrismaClient();
 const checkUserRole = require("../middleware/checkUserRole");
+const checkUserIssuePermissions = require("../middleware/checkUserIssuePermissions");
 const { minRoles } = require("../config/minRoles");
 
-router.get("/", checkUserRole(minRoles.issues.get), async (req, res) => {
+router.get("/", checkUserRole(minRoles.issues.get), async (req, res, next) => {
   try {
     // Get query params
 
@@ -41,6 +42,7 @@ router.get("/", checkUserRole(minRoles.issues.get), async (req, res) => {
         closedAt: true,
         users: {
           select: {
+            userId: true,
             firstName: true,
             lastName: true,
           },
@@ -93,10 +95,9 @@ router.get("/", checkUserRole(minRoles.issues.get), async (req, res) => {
         },
       },
     });
-
+  
     res.status(200).json(issues);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -113,10 +114,74 @@ router.get("/:id", checkUserRole(minRoles.issues.get), async (req, res) => {
       where: {
         issueId: id,
       },
+      select: {
+        issueId: true,
+        issueName: true,
+        issueDesc: true,
+        createdAt: true,
+        closedAt: true,
+        users: {
+          select: {
+            userId: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        types: {
+          select: {
+            typeId: true,
+            typeName: true,
+          },
+        },
+        statuses: {
+          select: {
+            statusId: true,
+            statusName: true,
+          },
+        },
+        comments: {
+          select: {
+            commentId: true,
+            commentText: true,
+            createdAt: true,
+            issueId: true,
+            users: {
+              select: {
+                userId: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+            documents: {
+              select: {
+                documentId: true,
+                documentUrl: true,
+              },
+            },
+          },
+        },
+        products: {
+          select: {
+            productId: true,
+            productName: true,
+          },
+        },
+        priority: {
+          select: {
+            priorityId: true,
+            priorityName: true,
+          },
+        },
+      },
     });
     if (!issue) {
       return res.status(404).json({ error: "Resource not found" });
     }
+
+    // implement checkUserIssuePermissions
+
+
     res.status(200).json(issue);
   } catch (err) {
     res.status(500).json({ error: "Internal Server Error" });
@@ -135,7 +200,38 @@ router.post("/", checkUserRole(minRoles.issues.post), async (req, res) => {
       return res.status(400).json({ error: "No user data is sent" });
     }
 
-    const issue = await prisma.issues.create({ data: newIssue });
+    const issue = await prisma.issues.create({
+      data: {
+        issueName: newIssue?.issueName,
+        issueDesc: newIssue?.issueDesc,
+        createdAt: newIssue?.createdAt,
+        users: {
+          connect: {
+            userId: newIssue?.users?.userId,
+          },
+        },
+        types: {
+          connect: {
+            typeId: newIssue?.types?.typeId,
+          },
+        },
+        statuses: {
+          connect: {
+            statusId: newIssue?.statuses?.statusId,
+          },
+        },
+        products: {
+          connect: {
+            productId: newIssue?.products?.productId,
+          },
+        },
+        priority: {
+          connect: {
+            priorityId: newIssue?.priority?.priorityId,
+          },
+        },
+      },
+    });
     res.status(201).json(issue);
   } catch (err) {
     res.status(500).json({ error: "Internal Server Error" });

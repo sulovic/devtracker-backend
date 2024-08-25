@@ -18,7 +18,7 @@ const verifyAccessToken = async (req, res, next) => {
 
     const decodedAccessToken = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
 
-    req.user = decodedAccessToken;
+    req.authUser = decodedAccessToken;
 
     next();
   } catch (error) {

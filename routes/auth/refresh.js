@@ -39,6 +39,7 @@ router.post("/", async (req, res) => {
     // Refresh token is valid, issue new access token
 
     const userData = {
+      userId: foundUser?.userId,
       firstName: foundUser?.firstName,
       lastName: foundUser?.lastName,
       email: foundUser?.email,
