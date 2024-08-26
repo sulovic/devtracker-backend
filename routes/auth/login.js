@@ -5,15 +5,9 @@ const prisma = new PrismaClient();
 const bcrypt = require("bcryptjs");
 const { generateAccessToken, generateRefreshToken } = require("../../middleware/generateTokens");
 const verifyGoogleToken = require("../../middleware/verifyGoogleToken");
+const { getUserData } = require("../../middleware/getUserData");
 
-const getUserData = async (email) => {
-  return await prisma.users.findUnique({
-    where: { email },
-    include: {
-      roles: true,
-    },
-  });
-};
+
 
 router.post("/", async (req, res) => {
   try {
@@ -29,28 +23,20 @@ router.post("/", async (req, res) => {
         return res.status(401).json({ message: "Missing Email or Password" });
       }
 
-      const foundUser = await getUserData(email);
+      const {userData} = await getUserData(email);
 
-      if (!foundUser) {
+      if (!userData) {
         return res.status(401).json({ message: "User not found" });
       }
 
-      const isPasswordValid = await bcrypt.compare(password, foundUser?.password);
+      const isPasswordValid = await bcrypt.compare(password, userData?.password);
 
       if (!isPasswordValid) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      const authUser = {
-        userId: foundUser?.userId,
-        firstName: foundUser?.firstName,
-        lastName: foundUser?.lastName,
-        email: foundUser?.email,
-        roles: foundUser?.roles,
-      };
-
-      const accessToken = await generateAccessToken(authUser);
-      const refreshToken = await generateRefreshToken(authUser);
+      const accessToken = await generateAccessToken(userData);
+      const refreshToken = await generateRefreshToken(userData);
 
       res
         .cookie("refreshToken", refreshToken, {
@@ -73,22 +59,14 @@ router.post("/", async (req, res) => {
 
       const decodedCredential = await verifyGoogleToken(credential);
 
-      const foundUser = await getUserData(decodedCredential?.email);
+      const {userData} = await getUserData(decodedCredential?.email);
 
-      if (!foundUser) {
+      if (!userData) {
         return res.status(401).json({ message: "User not found" });
       }
-
-      const authUser = {
-        userId: foundUser?.userId,
-        firstName: foundUser?.firstName,
-        lastName: foundUser?.lastName,
-        email: foundUser?.email,
-        roles: foundUser?.roles,
-      };
-
-      const accessToken = await generateAccessToken(authUser);
-      const refreshToken = await generateRefreshToken(authUser);
+      console.log("Data for token ", userData)
+      const accessToken = await generateAccessToken(userData);
+      const refreshToken = await generateRefreshToken(userData);
 
       res
         .cookie("refreshToken", refreshToken, {

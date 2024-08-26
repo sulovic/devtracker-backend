@@ -4,6 +4,7 @@ const { PrismaClient } = require("../../prisma/client");
 const prisma = new PrismaClient();
 const jwt = require("jsonwebtoken");
 const { generateAccessToken } = require("../../middleware/generateTokens");
+const { getUserData } = require("../../middleware/getUserData");
 
 router.post("/", async (req, res) => {
   try {
@@ -19,32 +20,17 @@ router.post("/", async (req, res) => {
 
     // Check if the provided refresh token matches the one stored in the database
 
-    const foundUser = await prisma.users.findUnique({
-      where: {
-        email: decodedRefreshToken?.email,
-      },
-      include: {
-        roles: true,
-      },
-    });
+    const { userData, dbRefreshToken } = await getUserData(decodedRefreshToken?.email);
 
-    if (!foundUser) {
+    if (!userData) {
       return res.status(401).json({ error: "User not found" });
     }
 
-    if (refreshToken !== foundUser?.refreshToken) {
+    if (refreshToken !== dbRefreshToken) {
       return res.status(401).json({ error: "Unauthorized - Invalid Refresh Token" });
     }
 
     // Refresh token is valid, issue new access token
-
-    const userData = {
-      userId: foundUser?.userId,
-      firstName: foundUser?.firstName,
-      lastName: foundUser?.lastName,
-      email: foundUser?.email,
-      roles: foundUser?.roles,
-    };
 
     const accessToken = await generateAccessToken(userData);
 

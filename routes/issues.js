@@ -3,8 +3,9 @@ const router = express.Router();
 const { PrismaClient } = require("../prisma/client");
 const prisma = new PrismaClient();
 const checkUserRole = require("../middleware/checkUserRole");
-const checkUserIssuePermissions = require("../middleware/checkUserIssuePermissions");
 const { minRoles } = require("../config/minRoles");
+
+// const checkUserIssuePermissions = require("../middleware/checkUserIssuePermissions");
 
 router.get("/", checkUserRole(minRoles.issues.get), async (req, res, next) => {
   try {
@@ -40,20 +41,20 @@ router.get("/", checkUserRole(minRoles.issues.get), async (req, res, next) => {
         issueDesc: true,
         createdAt: true,
         closedAt: true,
-        users: {
+        user: {
           select: {
             userId: true,
             firstName: true,
             lastName: true,
           },
         },
-        types: {
+        type: {
           select: {
             typeId: true,
             typeName: true,
           },
         },
-        statuses: {
+        status: {
           select: {
             statusId: true,
             statusName: true,
@@ -65,7 +66,7 @@ router.get("/", checkUserRole(minRoles.issues.get), async (req, res, next) => {
             commentText: true,
             createdAt: true,
             issueId: true,
-            users: {
+            user: {
               select: {
                 userId: true,
                 firstName: true,
@@ -81,7 +82,7 @@ router.get("/", checkUserRole(minRoles.issues.get), async (req, res, next) => {
             },
           },
         },
-        products: {
+        product: {
           select: {
             productId: true,
             productName: true,
@@ -95,7 +96,7 @@ router.get("/", checkUserRole(minRoles.issues.get), async (req, res, next) => {
         },
       },
     });
-  
+
     res.status(200).json(issues);
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
@@ -120,20 +121,20 @@ router.get("/:id", checkUserRole(minRoles.issues.get), async (req, res) => {
         issueDesc: true,
         createdAt: true,
         closedAt: true,
-        users: {
+        user: {
           select: {
             userId: true,
             firstName: true,
             lastName: true,
           },
         },
-        types: {
+        type: {
           select: {
             typeId: true,
             typeName: true,
           },
         },
-        statuses: {
+        status: {
           select: {
             statusId: true,
             statusName: true,
@@ -145,7 +146,7 @@ router.get("/:id", checkUserRole(minRoles.issues.get), async (req, res) => {
             commentText: true,
             createdAt: true,
             issueId: true,
-            users: {
+            user: {
               select: {
                 userId: true,
                 firstName: true,
@@ -161,7 +162,7 @@ router.get("/:id", checkUserRole(minRoles.issues.get), async (req, res) => {
             },
           },
         },
-        products: {
+        product: {
           select: {
             productId: true,
             productName: true,
@@ -181,9 +182,9 @@ router.get("/:id", checkUserRole(minRoles.issues.get), async (req, res) => {
 
     // implement checkUserIssuePermissions
 
-
     res.status(200).json(issue);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -205,24 +206,19 @@ router.post("/", checkUserRole(minRoles.issues.post), async (req, res) => {
         issueName: newIssue?.issueName,
         issueDesc: newIssue?.issueDesc,
         createdAt: newIssue?.createdAt,
-        users: {
+        user: {
           connect: {
-            userId: newIssue?.users?.userId,
+            userId: newIssue?.user?.userId,
           },
         },
-        types: {
+        type: {
           connect: {
-            typeId: newIssue?.types?.typeId,
+            typeId: newIssue?.type?.typeId,
           },
         },
-        statuses: {
+        status: {
           connect: {
-            statusId: newIssue?.statuses?.statusId,
-          },
-        },
-        products: {
-          connect: {
-            productId: newIssue?.products?.productId,
+            statusId: newIssue?.status?.statusId,
           },
         },
         priority: {
@@ -234,6 +230,7 @@ router.post("/", checkUserRole(minRoles.issues.post), async (req, res) => {
     });
     res.status(201).json(issue);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -245,12 +242,36 @@ router.post("/", checkUserRole(minRoles.issues.post), async (req, res) => {
 router.put("/:id", checkUserRole(minRoles.issues.put), async (req, res) => {
   try {
     const id = parseInt(req?.params?.id);
+    const updatedIssue = req?.body;
 
     const issue = await prisma.issues.update({
       where: {
         issueId: id,
       },
-      data: req?.body,
+      data: {
+        issueName: updatedIssue?.issueName,
+        issueDesc: updatedIssue?.issueDesc,
+        type: {
+          connect: {
+            typeId: updatedIssue?.type?.typeId,
+          },
+        },
+        status: {
+          connect: {
+            statusId: updatedIssue?.status?.statusId,
+          },
+        },
+        priority: {
+          connect: {
+            priorityId: updatedIssue?.priority?.priorityId,
+          },
+        },
+        product: {
+          connect: {
+            productId: updatedIssue?.product?.productId,
+          },
+        },
+      },
     });
 
     if (!issue) {
@@ -259,6 +280,7 @@ router.put("/:id", checkUserRole(minRoles.issues.put), async (req, res) => {
 
     res.status(200).json(issue);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {

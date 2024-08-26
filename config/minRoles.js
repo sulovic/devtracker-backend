@@ -29,6 +29,10 @@ const minRoles = {
     {
         get: 1000,
     },
+    comments:
+    {
+        post: 1000,
+    },
     types:
     {
         get: 1000,

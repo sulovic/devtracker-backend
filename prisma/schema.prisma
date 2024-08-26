@@ -14,9 +14,9 @@ model Users {
   lastName      String             @db.VarChar(64)
   email         String             @unique @db.VarChar(64)
   password      String?            @db.VarChar(64)
-  refreshToken  String?            @db.VarChar(512)
+  refreshToken  String?            @db.VarChar(1024)
   resetToken    String?            @db.VarChar(64)
-  roles         UserRolesOnUsers[]
+  roles         UserRolesOnUsers[] 
   createdAt     DateTime           @default(now())
   statusHistory StatusHistory[]
   comments      Comments[]
@@ -32,10 +32,10 @@ model UserRoles {
 }
 
 model UserRolesOnUsers {
-  userId    Int
-  roleId    Int
-  users     Users?     @relation(fields: [userId], references: [userId])
-  userRoles UserRoles? @relation(fields: [roleId], references: [roleId])
+  userId   Int
+  roleId   Int
+  user     Users?     @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: NoAction)
+  userRole UserRoles? @relation(fields: [roleId], references: [roleId],  onDelete: Cascade, onUpdate: NoAction)
 
   @@id([userId, roleId])
 }
@@ -57,7 +57,7 @@ model Priority {
   priorityName String   @db.VarChar(64)
   issues       Issues[]
 }
-  
+
 model Statuses {
   statusId      Int             @id @default(autoincrement())
   statusName    String          @db.VarChar(64)
@@ -71,15 +71,15 @@ model Issues {
   issueDesc     String          @db.VarChar(512)
   createdAt     DateTime        @default(now())
   closedAt      DateTime?
-  products      Products        @relation(fields: [productId], references: [productId], onDelete: Cascade, onUpdate: NoAction)
-  productId     Int
-  types         Types           @relation(fields: [typeId], references: [typeId], onDelete: Cascade, onUpdate: NoAction)
+  product       Products?        @relation(fields: [productId], references: [productId], onDelete: Cascade, onUpdate: NoAction)
+  productId     Int?
+  type          Types           @relation(fields: [typeId], references: [typeId], onDelete: Cascade, onUpdate: NoAction)
   typeId        Int
-  statuses      Statuses        @relation(fields: [statusId], references: [statusId], onDelete: Cascade, onUpdate: NoAction)
+  status        Statuses        @relation(fields: [statusId], references: [statusId], onDelete: Cascade, onUpdate: NoAction)
   statusId      Int
-  users         Users           @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: NoAction)
+  user          Users           @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: NoAction)
   userId        Int
-  priority      Priority       @relation(fields: [priorityId], references: [priorityId], onDelete: Cascade, onUpdate: NoAction)
+  priority      Priority        @relation(fields: [priorityId], references: [priorityId], onDelete: Cascade, onUpdate: NoAction)
   priorityId    Int
   statusHistory StatusHistory[]
   comments      Comments[]
@@ -90,11 +90,11 @@ model Issues {
 model StatusHistory {
   statusHistoryId Int      @id @default(autoincrement())
   createdAt       DateTime @default(now())
-  users           Users    @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: NoAction)
+  user            Users    @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: NoAction)
   userId          Int
-  statuses        Statuses @relation(fields: [statusId], references: [statusId], onDelete: Cascade, onUpdate: NoAction)
+  status          Statuses @relation(fields: [statusId], references: [statusId], onDelete: Cascade, onUpdate: NoAction)
   statusId        Int
-  issues          Issues   @relation(fields: [issueId], references: [issueId], onDelete: Cascade, onUpdate: NoAction)
+  issue           Issues   @relation(fields: [issueId], references: [issueId], onDelete: Cascade, onUpdate: NoAction)
   issueId         Int
 }
 
@@ -102,9 +102,9 @@ model Comments {
   commentId   Int         @id @default(autoincrement())
   commentText String      @db.VarChar(512)
   createdAt   DateTime    @default(now())
-  users       Users       @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: NoAction)
+  user        Users       @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: NoAction)
   userId      Int
-  issues      Issues      @relation(fields: [issueId], references: [issueId], onDelete: Cascade, onUpdate: NoAction)
+  issue       Issues      @relation(fields: [issueId], references: [issueId], onDelete: Cascade, onUpdate: NoAction)
   issueId     Int
   documents   Documents[]
 }
@@ -112,7 +112,7 @@ model Comments {
 model Documents {
   documentId  Int       @id @default(autoincrement())
   documentUrl String    @db.VarChar(512)
-  comments    Comments? @relation(fields: [commentId], references: [commentId], onDelete: Cascade, onUpdate: NoAction)
+  comment     Comments? @relation(fields: [commentId], references: [commentId], onDelete: Cascade, onUpdate: NoAction)
   commentId   Int?
 
   @@index([documentId])

@@ -4,7 +4,6 @@ const { PrismaClient } = require("../prisma/client");
 const prisma = new PrismaClient();
 const checkUserRole = require("../middleware/checkUserRole");
 const { minRoles } = require("../config/minRoles");
-const { bodyBlacklist } = require("express-winston");
 
 router.get("/", checkUserRole(minRoles.users.get), async (req, res) => {
   try {
@@ -39,18 +38,19 @@ router.get("/", checkUserRole(minRoles.users.get), async (req, res) => {
         email: true,
         roles: {
           select: {
-            userRoles: {
+            userRole: {
               select: {
                 roleId: true,
                 roleName: true,
               },
             },
-          },
+          }
         },
       },
     });
     res.status(200).json(users);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -148,7 +148,7 @@ router.put("/:id", checkUserRole(minRoles.users.put), async (req, res) => {
         roles: {
           deleteMany: {},
           createMany: {
-            data: editedUser?.roles.map((role) => ({ roleId: role?.userRoles?.roleId })),
+            data: editedUser?.roles.map((role) => ({ roleId: role?.userRole?.roleId })),
           },
         },
       },
@@ -194,6 +194,7 @@ router.delete("/:id", checkUserRole(minRoles.users.delete), async (req, res) => 
 
     res.status(200).json(deletedUser);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {

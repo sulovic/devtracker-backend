@@ -35,6 +35,7 @@ app.use("/api/priority", verifyAccessToken, require("./routes/priority"));
 app.use("/api/types", verifyAccessToken, require("./routes/types"));
 app.use("/api/uploads", verifyAccessToken, require("./routes/uploads"));
 app.use("/api/issues", verifyAccessToken, require("./routes/issues"));
+app.use("/api/comments", verifyAccessToken, require("./routes/comments"));
 
 
 

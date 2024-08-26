@@ -20,12 +20,16 @@ const checkUserRole =
 
       // Verify minimum role condition
 
-      if (decodedAccessToken?.user?.roleId < minRole) {
+      if (
+        !decodedAccessToken?.roles.some((role) => {
+          return role?.userRole?.roleId > minRole;
+        })
+      ) {
         return res.status(403).json({ error: "Forbidden - Insufficient privileges" });
       }
 
       next();
-    } catch (error) {
+    } catch (error){
       if (error.name === "JsonWebTokenError") {
         return res.status(401).json({ error: "Unauthorized - Invalid Access Token" });
       } else if (error.name === "TokenExpiredError") {
