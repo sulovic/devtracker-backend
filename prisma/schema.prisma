@@ -16,7 +16,7 @@ model Users {
   password      String?            @db.VarChar(64)
   refreshToken  String?            @db.VarChar(1024)
   resetToken    String?            @db.VarChar(64)
-  roles         UserRolesOnUsers[] 
+  roles         UserRolesOnUsers[]
   createdAt     DateTime           @default(now())
   statusHistory StatusHistory[]
   comments      Comments[]
@@ -26,16 +26,18 @@ model Users {
 }
 
 model UserRoles {
-  roleId   Int                @id @default(autoincrement())
-  roleName String             @db.VarChar(64)
-  users    UserRolesOnUsers[]
+  roleId        Int                @id @default(autoincrement())
+  roleName      String             @db.VarChar(64)
+  users         UserRolesOnUsers[]
+  issues        Issues[]
+  statusHistory StatusHistory[]
 }
 
 model UserRolesOnUsers {
   userId   Int
   roleId   Int
   user     Users?     @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: NoAction)
-  userRole UserRoles? @relation(fields: [roleId], references: [roleId],  onDelete: Cascade, onUpdate: NoAction)
+  userRole UserRoles? @relation(fields: [roleId], references: [roleId], onDelete: Cascade, onUpdate: NoAction)
 
   @@id([userId, roleId])
 }
@@ -71,7 +73,7 @@ model Issues {
   issueDesc     String          @db.VarChar(512)
   createdAt     DateTime        @default(now())
   closedAt      DateTime?
-  product       Products?        @relation(fields: [productId], references: [productId], onDelete: Cascade, onUpdate: NoAction)
+  product       Products?       @relation(fields: [productId], references: [productId], onDelete: Cascade, onUpdate: NoAction)
   productId     Int?
   type          Types           @relation(fields: [typeId], references: [typeId], onDelete: Cascade, onUpdate: NoAction)
   typeId        Int
@@ -81,6 +83,8 @@ model Issues {
   userId        Int
   priority      Priority        @relation(fields: [priorityId], references: [priorityId], onDelete: Cascade, onUpdate: NoAction)
   priorityId    Int
+  respRole      UserRoles       @relation(fields: [respRoleId], references: [roleId], onDelete: Cascade, onUpdate: NoAction)
+  respRoleId    Int
   statusHistory StatusHistory[]
   comments      Comments[]
 
@@ -88,14 +92,16 @@ model Issues {
 }
 
 model StatusHistory {
-  statusHistoryId Int      @id @default(autoincrement())
-  createdAt       DateTime @default(now())
-  user            Users    @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: NoAction)
+  statusHistoryId Int       @id @default(autoincrement())
+  createdAt       DateTime  @default(now())
+  user            Users     @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: NoAction)
   userId          Int
-  status          Statuses @relation(fields: [statusId], references: [statusId], onDelete: Cascade, onUpdate: NoAction)
+  status          Statuses  @relation(fields: [statusId], references: [statusId], onDelete: Cascade, onUpdate: NoAction)
   statusId        Int
-  issue           Issues   @relation(fields: [issueId], references: [issueId], onDelete: Cascade, onUpdate: NoAction)
+  issue           Issues    @relation(fields: [issueId], references: [issueId], onDelete: Cascade, onUpdate: NoAction)
   issueId         Int
+  respRole        UserRoles @relation(fields: [respRoleId], references: [roleId], onDelete: Cascade, onUpdate: NoAction)
+  respRoleId      Int
 }
 
 model Comments {

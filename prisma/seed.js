@@ -5,13 +5,12 @@ const seedPredefinedData = async () => {
   try {
     // Predefined Statuses
     const statuses = [
-      { statusId: 1, statusName: "New" },
+      { statusId: 1, statusName: "Triage" },
       { statusId: 2, statusName: "Invalid" },
       { statusId: 3, statusName: "Clarify" },
-      { statusId: 4, statusName: "Assigned" },
-      { statusId: 5, statusName: "Resolving" },
-      { statusId: 6, statusName: "Resolved" },
-      { statusId: 7, statusName: "Closed" },
+      { statusId: 4, statusName: "Resolving" },
+      { statusId: 5, statusName: "Verify" },
+      { statusId: 6, statusName: "Closed" },
     ];
 
     // Predefined Priorities

@@ -7,8 +7,6 @@ const { generateAccessToken, generateRefreshToken } = require("../../middleware/
 const verifyGoogleToken = require("../../middleware/verifyGoogleToken");
 const { getUserData } = require("../../middleware/getUserData");
 
-
-
 router.post("/", async (req, res) => {
   try {
     const { type, email, password, credential } = req?.body;
@@ -23,13 +21,13 @@ router.post("/", async (req, res) => {
         return res.status(401).json({ message: "Missing Email or Password" });
       }
 
-      const {userData} = await getUserData(email);
+      const { userData, dbPassword } = await getUserData(email);
 
       if (!userData) {
         return res.status(401).json({ message: "User not found" });
       }
 
-      const isPasswordValid = await bcrypt.compare(password, userData?.password);
+      const isPasswordValid = await bcrypt.compare(password, dbPassword);
 
       if (!isPasswordValid) {
         return res.status(401).json({ message: "Invalid credentials" });
@@ -59,12 +57,11 @@ router.post("/", async (req, res) => {
 
       const decodedCredential = await verifyGoogleToken(credential);
 
-      const {userData} = await getUserData(decodedCredential?.email);
+      const { userData } = await getUserData(decodedCredential?.email);
 
       if (!userData) {
         return res.status(401).json({ message: "User not found" });
       }
-      console.log("Data for token ", userData)
       const accessToken = await generateAccessToken(userData);
       const refreshToken = await generateRefreshToken(userData);
 
@@ -84,6 +81,7 @@ router.post("/", async (req, res) => {
       return res.status(401).json({ message: "Invalid Auth type" });
     }
   } catch (error) {
+    console.error(error);
     if (error.name === "InvalidGoogleToken") {
       return res.status(401).json({ error: "Unauthorized - Invalid Google Token" });
     } else {

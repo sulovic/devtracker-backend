@@ -24,7 +24,6 @@ router.post("/", checkUserRole(minRoles.comments.post), async (req, res) => {
 
     res.status(201).json(comment);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {

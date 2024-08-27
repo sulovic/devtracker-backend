@@ -94,6 +94,12 @@ router.get("/", checkUserRole(minRoles.issues.get), async (req, res, next) => {
             priorityName: true,
           },
         },
+        respRole: {
+          select: {
+            roleId: true,
+            roleName: true,
+          },
+        },
       },
     });
 
@@ -174,6 +180,12 @@ router.get("/:id", checkUserRole(minRoles.issues.get), async (req, res) => {
             priorityName: true,
           },
         },
+        respRole: {
+          select: {
+            roleId: true,
+            roleName: true,
+          },
+        },
       },
     });
     if (!issue) {
@@ -184,7 +196,6 @@ router.get("/:id", checkUserRole(minRoles.issues.get), async (req, res) => {
 
     res.status(200).json(issue);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -226,11 +237,15 @@ router.post("/", checkUserRole(minRoles.issues.post), async (req, res) => {
             priorityId: newIssue?.priority?.priorityId,
           },
         },
+        respRole: {
+          connect: {
+            roleId: newIssue?.respRole?.roleId,
+          },
+        },
       },
     });
     res.status(201).json(issue);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -271,6 +286,11 @@ router.put("/:id", checkUserRole(minRoles.issues.put), async (req, res) => {
             productId: updatedIssue?.product?.productId,
           },
         },
+        respRole: {
+          connect: {
+            roleId: updatedIssue?.respRole?.roleId,
+          },
+        },
       },
     });
 
@@ -280,7 +300,6 @@ router.put("/:id", checkUserRole(minRoles.issues.put), async (req, res) => {
 
     res.status(200).json(issue);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {

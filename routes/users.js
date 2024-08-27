@@ -50,7 +50,6 @@ router.get("/", checkUserRole(minRoles.users.get), async (req, res) => {
     });
     res.status(200).json(users);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -108,7 +107,7 @@ router.post("/", checkUserRole(minRoles.users.post), async (req, res) => {
         email: newUser?.email,
         roles: {
           createMany: {
-            data: newUser?.roles.map((role) => ({ roleId: role?.userRoles?.roleId })),
+            data: newUser?.roles.map((role) => ({ roleId: role?.userRole?.roleId })),
           },
         },
       },
@@ -194,7 +193,6 @@ router.delete("/:id", checkUserRole(minRoles.users.delete), async (req, res) => 
 
     res.status(200).json(deletedUser);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
