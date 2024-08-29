@@ -22,62 +22,35 @@ router.get("/", checkUserRole(minRoles.issues.get), async (req, res, next) => {
           }
         : undefined;
 
-    const { userId, statusId, respRoleId } = filters;
+    const createCondition = (key, value) => {
+      const values = value.split(",").map(Number);
+      return values.length === 1 ? { [key]: values[0] } : { [key]: { in: values } };
+    };
 
     const andConditions = [];
-
-
-    if (statusId) {
-      const statusIds = statusId.split(",").map(Number);
-
-      statusIds.length === 1
-        ? andConditions.push({
-            statusId: statusIds[0],
-          })
-        : andConditions.push({
-            statusId: {
-              in: statusIds,
-            },
-          });
-    }
-
+    const andKeys = ["statusId", "priorityId", "typeId", "productId"];
 
     const orConditions = [];
+    const orKeys = ["userId", "respRoleId"];
 
-    if (userId) {
-      const userIds = userId.split(",").map(Number);
+    andKeys.forEach((key) => {
+      if (filters[key]) {
+        andConditions.push(createCondition(key, filters[key]));
+      }
+    });
 
-      userIds.length === 1
-        ? orConditions.push({
-            userId: userIds[0],
-          })
-        : orConditions.push({
-            userId: {
-              in: userIds,
-            },
-          });
-    }
-
-    if (respRoleId) {
-      const respRoleIds = respRoleId.split(",").map(Number);
-
-      respRoleIds.length === 1
-        ? orConditions.push({
-            respRoleId: respRoleIds[0],
-          })
-        : orConditions.push({
-            respRoleId: {
-              in: respRoleIds,
-            },
-          });
-    }
+    orKeys.forEach((key) => {
+      if (filters[key]) {
+        orConditions.push(createCondition(key, filters[key]));
+      }
+    });
 
     const whereClause = {
       AND: andConditions.length > 0 ? andConditions : undefined,
       OR: orConditions.length > 0 ? orConditions : undefined,
     };
 
-    console.log(whereClause.OR[0]);
+    console.log(whereClause);
 
     const issues = await prisma.issues.findMany({
       where: whereClause,
