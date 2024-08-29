@@ -22,16 +22,65 @@ router.get("/", checkUserRole(minRoles.issues.get), async (req, res, next) => {
           }
         : undefined;
 
-    const filter = {};
+    const { userId, statusId, respRoleId } = filters;
 
-    for (const key in filters) {
-      const value = filters[key];
-      const values = value.split(",");
-      filter[key] = { in: values };
+    const andConditions = [];
+
+
+    if (statusId) {
+      const statusIds = statusId.split(",").map(Number);
+
+      statusIds.length === 1
+        ? andConditions.push({
+            statusId: statusIds[0],
+          })
+        : andConditions.push({
+            statusId: {
+              in: statusIds,
+            },
+          });
     }
 
+
+    const orConditions = [];
+
+    if (userId) {
+      const userIds = userId.split(",").map(Number);
+
+      userIds.length === 1
+        ? orConditions.push({
+            userId: userIds[0],
+          })
+        : orConditions.push({
+            userId: {
+              in: userIds,
+            },
+          });
+    }
+
+    if (respRoleId) {
+      const respRoleIds = respRoleId.split(",").map(Number);
+
+      respRoleIds.length === 1
+        ? orConditions.push({
+            respRoleId: respRoleIds[0],
+          })
+        : orConditions.push({
+            respRoleId: {
+              in: respRoleIds,
+            },
+          });
+    }
+
+    const whereClause = {
+      AND: andConditions.length > 0 ? andConditions : undefined,
+      OR: orConditions.length > 0 ? orConditions : undefined,
+    };
+
+    console.log(whereClause.OR[0]);
+
     const issues = await prisma.issues.findMany({
-      where: filter,
+      where: whereClause,
       orderBy,
       take,
       skip,
