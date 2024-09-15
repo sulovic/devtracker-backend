@@ -32,6 +32,7 @@ const minRoles = {
     comments:
     {
         post: 1000,
+        delete: 1000,
     },
     types:
     {

@@ -50,8 +50,6 @@ router.get("/", checkUserRole(minRoles.issues.get), async (req, res, next) => {
       OR: orConditions.length > 0 ? orConditions : undefined,
     };
 
-    console.log(whereClause);
-
     const issues = await prisma.issues.findMany({
       where: whereClause,
       orderBy,
@@ -125,7 +123,9 @@ router.get("/", checkUserRole(minRoles.issues.get), async (req, res, next) => {
       },
     });
 
-    res.status(200).json(issues);
+    const issuesCount = await prisma.issues.count({ where: whereClause });
+
+    res.status(200).json({ data: issues, count: issuesCount });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
@@ -344,6 +344,12 @@ router.delete("/:id", checkUserRole(minRoles.issues.delete), async (req, res) =>
 
     if (!existingIssue) {
       return res.status(404).json({ error: "Product not found" });
+    }
+
+    //Check user permissions - Creator or Admin
+
+    if (existingComment?.userId !== req?.authUser?.userId && !req?.authUser?.roles?.some((role) => role?.userRole?.roleId > 5000)) {
+      return res.status(403).json({ error: "Forbidden - Insufficient privileges" });
     }
 
     //Delete if exists
