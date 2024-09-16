@@ -264,6 +264,25 @@ router.post("/", checkUserRole(minRoles.issues.post), async (req, res) => {
             roleId: newIssue?.respRole?.roleId,
           },
         },
+        statusHistory: {
+          create: {
+            status: {
+              connect: {
+                statusId: newIssue?.status?.statusId,
+              },
+            },
+            user: {
+              connect: {
+                userId: newIssue?.user?.userId,
+              },
+            },
+            respRole: {
+              connect: {
+                roleId: newIssue?.respRole?.roleId,
+              },
+            },
+          },
+        },
       },
     });
     res.status(201).json(issue);
@@ -280,6 +299,20 @@ router.put("/:id", checkUserRole(minRoles.issues.put), async (req, res) => {
   try {
     const id = parseInt(req?.params?.id);
     const updatedIssue = req?.body;
+
+    const existingStatus = await prisma.issues.findUnique({
+      where: {
+        issueId: id,
+      },
+      select: {
+        status: {
+          select: {
+            statusId: true,
+          },
+        },
+      },
+    });
+
 
     const issue = await prisma.issues.update({
       where: {
@@ -315,6 +348,33 @@ router.put("/:id", checkUserRole(minRoles.issues.put), async (req, res) => {
         },
       },
     });
+
+    if (existingStatus !== updatedIssue?.status?.statusId) {
+      await prisma.statusHistory.create({
+        data: {
+          status: {
+            connect: {
+              statusId: updatedIssue?.status?.statusId,
+            },
+          },
+          issue: {
+            connect: {
+              issueId: id,
+            },
+          },
+          user: {
+            connect: {
+              userId: req?.authUser?.userId,
+            },
+          },
+          respRole: {
+            connect: {
+              roleId: updatedIssue?.respRole?.roleId,
+            },
+          },
+        },
+      });
+    }
 
     if (!issue) {
       return res.status(404).json({ error: "Resource not found" });

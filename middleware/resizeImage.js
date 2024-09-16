@@ -4,23 +4,21 @@ const fs = require("fs");
 const resizeImage =
   (width = 800) =>
   async (req, res, next) => {
-    if (!req.file) {
-      return next();
-    }
-
     try {
-      const sanitizedFileName = req.file.originalname.replace(/[^a-zA-Z0-9-_.]/g, "");
+      if (req?.files && req?.files.length > 0) {
+        const files = req?.files;
 
-      const filePath = path.join(__dirname, "../public/", sanitizedFileName);
-      const tempFilePath = path.join(__dirname, "../public/", `temp-${sanitizedFileName}`);
+        for (const file of files) {
+          const fileName = file?.filename;
+          const filePath = path.join(__dirname, "../uploads/", fileName);
+          const tempFilePath = path.join(__dirname, "../uploads/", `temp-${fileName}`);
 
-      if (!fs.existsSync(filePath)) {
-        return res.status(404).send("File not found.");
+          if (fs.existsSync(filePath)) {
+            await sharp(filePath).resize(width).toFile(tempFilePath);
+            fs.renameSync(tempFilePath, filePath);
+          }
+        }
       }
-
-      await sharp(filePath).resize(width).toFile(tempFilePath);
-
-      fs.renameSync(tempFilePath, filePath);
 
       next();
     } catch (err) {

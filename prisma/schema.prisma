@@ -118,8 +118,8 @@ model Comments {
 model Documents {
   documentId  Int       @id @default(autoincrement())
   documentUrl String    @db.VarChar(512)
-  comment     Comments? @relation(fields: [commentId], references: [commentId], onDelete: Cascade, onUpdate: NoAction)
-  commentId   Int?
+  comment     Comments @relation(fields: [commentId], references: [commentId], onDelete: Cascade, onUpdate: NoAction)
+  commentId   Int
 
   @@index([documentId])
 }
