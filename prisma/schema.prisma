@@ -31,6 +31,8 @@ model UserRoles {
   users         UserRolesOnUsers[]
   issues        Issues[]
   statusHistory StatusHistory[]
+
+  @@index([roleId, roleName])
 }
 
 model UserRolesOnUsers {
@@ -46,18 +48,24 @@ model Products {
   productId   Int      @id @default(autoincrement())
   productName String   @db.VarChar(64)
   issues      Issues[]
+
+  @@index([productId, productName])
 }
 
 model Types {
   typeId   Int      @id @default(autoincrement())
   typeName String   @db.VarChar(64)
   issues   Issues[]
+
+  @@index([typeId, typeName])
 }
 
 model Priority {
   priorityId   Int      @id @default(autoincrement())
   priorityName String   @db.VarChar(64)
   issues       Issues[]
+
+  @@index([priorityId, priorityName])
 }
 
 model Statuses {
@@ -65,6 +73,8 @@ model Statuses {
   statusName    String          @db.VarChar(64)
   issues        Issues[]
   statusHistory StatusHistory[]
+
+  @@index([statusId, statusName])
 }
 
 model Issues {
@@ -88,7 +98,7 @@ model Issues {
   statusHistory StatusHistory[]
   comments      Comments[]
 
-  @@index([issueId, issueName, issueDesc, userId, statusId])
+  @@index([issueId, issueName, issueDesc, userId, statusId, priorityId, respRoleId])
 }
 
 model StatusHistory {
@@ -102,6 +112,8 @@ model StatusHistory {
   issueId         Int
   respRole        UserRoles @relation(fields: [respRoleId], references: [roleId], onDelete: Cascade, onUpdate: NoAction)
   respRoleId      Int
+
+  @@index([statusHistoryId])
 }
 
 model Comments {
@@ -113,11 +125,13 @@ model Comments {
   issue       Issues      @relation(fields: [issueId], references: [issueId], onDelete: Cascade, onUpdate: NoAction)
   issueId     Int
   documents   Documents[]
+
+  @@index([commentId])
 }
 
 model Documents {
-  documentId  Int       @id @default(autoincrement())
-  documentUrl String    @db.VarChar(512)
+  documentId  Int      @id @default(autoincrement())
+  documentUrl String   @db.VarChar(512)
   comment     Comments @relation(fields: [commentId], references: [commentId], onDelete: Cascade, onUpdate: NoAction)
   commentId   Int
 

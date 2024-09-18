@@ -208,6 +208,34 @@ router.get("/:id", checkUserRole(minRoles.issues.get), async (req, res) => {
             roleName: true,
           },
         },
+        statusHistory: {
+          select: {
+            createdAt: true,
+            user: {
+              select: {
+                userId: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+            status: {
+              select: {
+                statusId: true,
+                statusName: true,
+              },
+            },
+            respRole: {
+              select: {
+                roleId: true,
+                roleName: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
       },
     });
     if (!issue) {
@@ -312,7 +340,6 @@ router.put("/:id", checkUserRole(minRoles.issues.put), async (req, res) => {
         },
       },
     });
-
 
     const issue = await prisma.issues.update({
       where: {
