@@ -80,28 +80,6 @@ router.get("/", checkUserRole(minRoles.issues.get), async (req, res, next) => {
             statusName: true,
           },
         },
-        comments: {
-          select: {
-            commentId: true,
-            commentText: true,
-            createdAt: true,
-            issueId: true,
-            user: {
-              select: {
-                userId: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-              },
-            },
-            documents: {
-              select: {
-                documentId: true,
-                documentUrl: true,
-              },
-            },
-          },
-        },
         product: {
           select: {
             productId: true,
@@ -238,14 +216,20 @@ router.get("/:id", checkUserRole(minRoles.issues.get), async (req, res) => {
         },
       },
     });
+
     if (!issue) {
       return res.status(404).json({ error: "Resource not found" });
     }
 
-    // implement checkUserIssuePermissions
+    //Check user permissions - Issue Creator or authUser role >= issue respRole
+
+    if (req?.authUser?.userId !== issue?.user?.userId && !req?.authUser?.roles?.some((role) => role?.userRole?.roleId >= issue?.respRole?.roleId)) {
+      return res.status(403).json({ error: "Forbidden - Insufficient privileges" });
+    }
 
     res.status(200).json(issue);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -260,6 +244,12 @@ router.post("/", checkUserRole(minRoles.issues.post), async (req, res) => {
 
     if (!newIssue) {
       return res.status(400).json({ error: "No user data is sent" });
+    }
+
+    //Check user permissions - Creator
+
+    if (req?.authUser?.roles?.some((role) => role?.userRole?.roleId !== 1001)) {
+      return res.status(403).json({ error: "Forbidden - Insufficient privileges" });
     }
 
     const issue = await prisma.issues.create({
@@ -328,7 +318,9 @@ router.put("/:id", checkUserRole(minRoles.issues.put), async (req, res) => {
     const id = parseInt(req?.params?.id);
     const updatedIssue = req?.body;
 
-    const existingStatus = await prisma.issues.findUnique({
+    //Get data needed to check permissions
+
+    const existingIssue = await prisma.issues.findUnique({
       where: {
         issueId: id,
       },
@@ -336,10 +328,39 @@ router.put("/:id", checkUserRole(minRoles.issues.put), async (req, res) => {
         status: {
           select: {
             statusId: true,
+            statusName: true,
+          },
+        },
+        user: {
+          select: {
+            userId: true,
+          },
+        },
+        respRole: {
+          select: {
+            roleId: true,
           },
         },
       },
     });
+
+    if (!existingIssue) {
+      return res.status(404).json({ error: "Resource not found" });
+    }
+
+    //Check if status is not Closed
+
+    if (existingIssue?.status?.statusName === "Closed") {
+      return res.status(403).json({ error: "Forbidden - Status is closed" });
+    }
+
+    //Check user permissions - Issue Creator or Admin or authUser.role === issue respRole
+
+    if (req?.authUser?.userId !== existingIssue?.user?.userId && !req?.authUser?.roles?.some((role) => role?.userRole?.roleId === 5001) && !req?.authUser?.roles?.some((role) => role?.userRole?.roleId === existingIssue?.respRole?.roleId)) {
+      return res.status(403).json({ error: "Forbidden - Insufficient privileges" });
+    }
+
+    //Checks passed, updating issue
 
     const issue = await prisma.issues.update({
       where: {
@@ -376,7 +397,9 @@ router.put("/:id", checkUserRole(minRoles.issues.put), async (req, res) => {
       },
     });
 
-    if (existingStatus !== updatedIssue?.status?.statusId) {
+    //Create status history if status has changed
+
+    if (existingIssue?.status?.statusId !== updatedIssue?.status?.statusId) {
       await prisma.statusHistory.create({
         data: {
           status: {
@@ -403,12 +426,9 @@ router.put("/:id", checkUserRole(minRoles.issues.put), async (req, res) => {
       });
     }
 
-    if (!issue) {
-      return res.status(404).json({ error: "Resource not found" });
-    }
-
     res.status(200).json(issue);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -421,8 +441,6 @@ router.delete("/:id", checkUserRole(minRoles.issues.delete), async (req, res) =>
   try {
     const id = parseInt(req?.params?.id);
 
-    //Check for resource before deletion
-
     const existingIssue = await prisma.issues.findUnique({
       where: {
         issueId: id,
@@ -431,12 +449,6 @@ router.delete("/:id", checkUserRole(minRoles.issues.delete), async (req, res) =>
 
     if (!existingIssue) {
       return res.status(404).json({ error: "Product not found" });
-    }
-
-    //Check user permissions - Creator or Admin
-
-    if (existingComment?.userId !== req?.authUser?.userId && !req?.authUser?.roles?.some((role) => role?.userRole?.roleId > 5000)) {
-      return res.status(403).json({ error: "Forbidden - Insufficient privileges" });
     }
 
     //Delete if exists

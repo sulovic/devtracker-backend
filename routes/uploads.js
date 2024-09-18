@@ -54,7 +54,6 @@ router.post("/", checkUserRole(minRoles.uploads.post), upload.any(), resizeImage
     const filenames = req.files.map((file) => file.filename);
     const commentId = parseInt(req.body.commentId);
 
-    //Check user permissions - Creator or Admin
     const comment = await prisma.comments.findUnique({
       where: {
         commentId: commentId,
@@ -68,8 +67,10 @@ router.post("/", checkUserRole(minRoles.uploads.post), upload.any(), resizeImage
       return res.status(404).json({ message: "Comment not found" });
     }
 
+    //Check user permissions - Creator
+
     if (comment?.userId !== req?.authUser?.userId) {
-      return res.status(403).json({ error: "Forbidden - Insufficient privileges - not Comment Creator" });
+      return res.status(403).json({ error: "Forbidden - Insufficient privileges" });
     }
 
     await prisma.documents.createMany({
