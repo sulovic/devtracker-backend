@@ -12,7 +12,7 @@ router.get("/", checkUserRole(minRoles.issues.get), async (req, res, next) => {
     // Get query params
 
     const queryParams = req?.query;
-    const { sortBy, sortOrder, limit, page, ...filters } = queryParams;
+    const { sortBy, sortOrder, limit, page, search, ...filters } = queryParams;
     const take = limit ? parseInt(limit) : undefined;
     const skip = page && limit ? (parseInt(page) - 1) * parseInt(limit) : undefined;
     const orderBy =
@@ -44,6 +44,15 @@ router.get("/", checkUserRole(minRoles.issues.get), async (req, res, next) => {
         orConditions.push(createCondition(key, filters[key]));
       }
     });
+
+    if (search) {
+      andConditions.push({
+        OR: [
+          { issueName: { contains: search, mode: "insensitive" } },
+          { issueDesc: { contains: search, mode: "insensitive" } },
+        ],
+      });
+    }
 
     const whereClause = {
       AND: andConditions.length > 0 ? andConditions : undefined,
