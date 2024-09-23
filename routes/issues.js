@@ -256,7 +256,7 @@ router.post("/", checkUserRole(minRoles.issues.post), async (req, res) => {
 
     //Check user permissions - Creator
 
-    if (req?.authUser?.roles?.some((role) => role?.userRole?.roleId !== 1001)) {
+    if (!req?.authUser?.roles?.some((role) => role?.userRole?.roleId === 1001)) {
       return res.status(403).json({ error: "Forbidden - Insufficient privileges" });
     }
 
