@@ -48,8 +48,8 @@ router.get("/", checkUserRole(minRoles.issues.get), async (req, res, next) => {
     if (search) {
       andConditions.push({
         OR: [
-          { issueName: { contains: search, mode: "insensitive" } },
-          { issueDesc: { contains: search, mode: "insensitive" } },
+          { issueName: { contains: search } },
+          { issueDesc: { contains: search } },
         ],
       });
     }
@@ -238,7 +238,6 @@ router.get("/:id", checkUserRole(minRoles.issues.get), async (req, res) => {
 
     res.status(200).json(issue);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -437,7 +436,6 @@ router.put("/:id", checkUserRole(minRoles.issues.put), async (req, res) => {
 
     res.status(200).json(issue);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
