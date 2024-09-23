@@ -221,9 +221,9 @@ router.get("/:id", checkUserRole(minRoles.issues.get), async (req, res) => {
       return res.status(404).json({ error: "Resource not found" });
     }
 
-    //Check user permissions - Issue Creator or authUser role >= issue respRole
+    //Check user permissions - Issue Creator or Admin or authUser.role === issue.respRole
 
-    if (req?.authUser?.userId !== issue?.user?.userId && !req?.authUser?.roles?.some((role) => role?.userRole?.roleId >= issue?.respRole?.roleId)) {
+    if (req?.authUser?.userId !== issue?.user?.userId && !req?.authUser?.roles?.some((role) => role?.userRole?.roleId > 5000) && !req?.authUser?.roles?.some((role) => role?.userRole?.roleId === issue?.respRole?.roleId)) {
       return res.status(403).json({ error: "Forbidden - Insufficient privileges" });
     }
 
@@ -354,7 +354,7 @@ router.put("/:id", checkUserRole(minRoles.issues.put), async (req, res) => {
       return res.status(403).json({ error: "Forbidden - Status is closed" });
     }
 
-    //Check user permissions - Issue Creator or Admin or authUser.role === issue respRole
+    //Check user permissions - Issue Creator or Admin or authUser.role === issue.respRole
 
     if (req?.authUser?.userId !== existingIssue?.user?.userId && !req?.authUser?.roles?.some((role) => role?.userRole?.roleId === 5001) && !req?.authUser?.roles?.some((role) => role?.userRole?.roleId === existingIssue?.respRole?.roleId)) {
       return res.status(403).json({ error: "Forbidden - Insufficient privileges" });
