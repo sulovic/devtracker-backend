@@ -25,7 +25,7 @@ const verifyAccessToken = async (req, res, next) => {
     if (error.name === "JsonWebTokenError") {
       return res.status(401).json({ error: "Unauthorized - Invalid Access Token" });
     } else if (error.name === "TokenExpiredError") {
-      return res.status(403).json({ error: "Unauthorized - Access Token Expired" });
+      return res.status(401).json({ error: "Unauthorized - Access Token Expired" });
     } else {
       return res.status(500).json({ error: "Internal Server Error" });
     }
