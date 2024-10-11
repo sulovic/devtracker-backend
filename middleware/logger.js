@@ -12,18 +12,12 @@ const reqLogger = createLogger({
 });
 
 function requestLogger(req, res, next) {
-  reqLogger.info({
-    message: "Request logged",
-    method: req.method,
-    path: req.path,
-    query: req.query,
-    timestamp: new Date().toISOString(),
-  });
+  const logMessage = `Method: ${req.method}, Path: ${req.path}, Query: ${JSON.stringify(req.query)}`;
+  reqLogger.info(logMessage);
   next();
 }
 
 // Custom error logging function
-
 
 const errLogger = createLogger({
   level: "error",
