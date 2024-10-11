@@ -4,6 +4,7 @@ const { PrismaClient } = require("../prisma/client");
 const prisma = new PrismaClient();
 const checkUserRole = require("../middleware/checkUserRole");
 const { minRoles } = require("../config/minRoles");
+const { errorLogger } = require("../middleware/logger");
 
 router.get("/", checkUserRole(minRoles.products.get), async (req, res) => {
   try {
@@ -36,6 +37,7 @@ router.get("/", checkUserRole(minRoles.products.get), async (req, res) => {
     });
     res.status(200).json(products);
   } catch (error) {
+    errorLogger(err, req);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -58,6 +60,7 @@ router.get("/:id", checkUserRole(minRoles.products.get), async (req, res) => {
     }
     res.status(200).json(product);
   } catch (err) {
+    errorLogger(err, req);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -77,6 +80,7 @@ router.post("/", checkUserRole(minRoles.products.post), async (req, res) => {
     const product = await prisma.products.create({ data: newProduct });
     res.status(201).json(product);
   } catch (err) {
+    errorLogger(err, req);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -102,6 +106,7 @@ router.put("/:id", checkUserRole(minRoles.products.put), async (req, res) => {
 
     res.status(200).json(product);
   } catch (err) {
+    errorLogger(err, req);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -136,7 +141,8 @@ router.delete("/:id", checkUserRole(minRoles.products.delete), async (req, res) 
 
     res.status(200).json(deletedProduct);
   } catch (err) {
-+    res.status(500).json({ error: "Internal Server Error" });
+    errorLogger(err, req);
+    res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
       await prisma.$disconnect();

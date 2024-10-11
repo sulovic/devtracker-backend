@@ -6,6 +6,8 @@ const bcrypt = require("bcryptjs");
 const { generateAccessToken, generateRefreshToken } = require("../../middleware/generateTokens");
 const verifyGoogleToken = require("../../middleware/verifyGoogleToken");
 const { getUserData } = require("../../middleware/getUserData");
+const { errorLogger } = require("../../middleware/logger");
+
 
 router.post("/", async (req, res) => {
   try {
@@ -80,9 +82,9 @@ router.post("/", async (req, res) => {
     } else {
       return res.status(401).json({ message: "Invalid Auth type" });
     }
-  } catch (error) {
-    console.error(error);
-    if (error.name === "InvalidGoogleToken") {
+  } catch (err) {
+    errorLogger(err, req);
+    if (err.name === "InvalidGoogleToken") {
       return res.status(401).json({ error: "Unauthorized - Invalid Google Token" });
     } else {
       res.status(500).json({ error: "Internal Server Error" });

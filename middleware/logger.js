@@ -1,39 +1,39 @@
-const winston = require('winston');
-const expressWinston = require('express-winston');
+const { createLogger, format, transports } = require("winston");
+const { combine, timestamp, printf } = format;
 
-const logger = winston.createLogger({
-    level: 'info',
-    format: winston.format.json(),
-    defaultMeta: { service: 'user-service' },
-    transports: [
-        new winston.transports.File({ filename: 'error.log', level: 'error' }),
-        new winston.transports.File({ filename: 'application.log' })
-    ]
+const logFormat = printf(({ level, message, timestamp }) => {
+  return `${timestamp} ${level}: ${message}`;
 });
 
-// Request logger
+const reqLogger = createLogger({
+  level: "info",
+  format: combine(timestamp({ format: "YYYY-MM-DD HH:mm:ss" }), logFormat),
+  transports: [new transports.File({ filename: "application.log" })],
+});
+
 function requestLogger(req, res, next) {
-    logger.info({
-      message: "Request logged",
-      method: req.method,
-      path: req.path,
-      query: req.query,
-      timestamp: new Date().toISOString(),
-    });
-    next();
-  }
-  
-  // Error logger
-  function errorLogger(err, req, res, next) {
-    logger.error({
-      message: "Error logged",
-      error: err.stack,
-      timestamp: new Date().toISOString(),
-    });
-    next(err);
-  }
-  
-  module.exports = {
-      requestLogger,
-      errorLogger
-    };
+  reqLogger.info({
+    message: "Request logged",
+    method: req.method,
+    path: req.path,
+    query: req.query,
+    timestamp: new Date().toISOString(),
+  });
+  next();
+}
+
+// Custom error logging function
+
+
+const errLogger = createLogger({
+  level: "error",
+  format: combine(timestamp({ format: "YYYY-MM-DD HH:mm:ss" }), logFormat),
+  transports: [new transports.File({ filename: "error.log" })],
+});
+
+function errorLogger(err, req) {
+  const errorMessage = `${err.status || 500} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`;
+  errLogger.error(errorMessage);
+}
+
+module.exports = { requestLogger, errorLogger };

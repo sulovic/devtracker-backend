@@ -4,6 +4,7 @@ const { PrismaClient } = require("../prisma/client");
 const prisma = new PrismaClient();
 const checkUserRole = require("../middleware/checkUserRole");
 const { minRoles } = require("../config/minRoles");
+const { errorLogger } = require("../middleware/logger");
 
 router.post("/", checkUserRole(minRoles.comments.post), async (req, res) => {
   try {
@@ -24,6 +25,7 @@ router.post("/", checkUserRole(minRoles.comments.post), async (req, res) => {
 
     res.status(201).json(comment);
   } catch (err) {
+    errorLogger(err, req);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -64,6 +66,7 @@ router.delete("/:id", checkUserRole(minRoles.comments.delete), async (req, res) 
 
     res.status(200).json(deletedComment);
   } catch (err) {
+    errorLogger(err, req);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {

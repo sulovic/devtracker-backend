@@ -8,6 +8,7 @@ const resizeImage = require("../middleware/resizeImage");
 const multer = require("multer");
 const { PrismaClient } = require("../prisma/client");
 const prisma = new PrismaClient();
+const { errorLogger } = require("../middleware/logger");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -82,7 +83,7 @@ router.post("/", checkUserRole(minRoles.uploads.post), upload.any(), resizeImage
 
     res.status(200).json(filenames);
   } catch (err) {
-    console.error(err);
+    errorLogger(err, req);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
@@ -136,6 +137,7 @@ router.delete("/:id", checkUserRole(minRoles.uploads.delete), async (req, res) =
 
     res.status(200).json({ message: "File deleted successfully" });
   } catch (err) {
+    errorLogger(err, req);
     if (err.code === "ENOENT") {
       res.status(404).json({ message: "File not found" });
     } else {

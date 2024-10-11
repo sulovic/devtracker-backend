@@ -5,6 +5,8 @@ const prisma = new PrismaClient();
 const jwt = require("jsonwebtoken");
 const { generateAccessToken } = require("../../middleware/generateTokens");
 const { getUserData } = require("../../middleware/getUserData");
+const { errorLogger } = require("../../middleware/logger");
+
 
 router.post("/", async (req, res) => {
   try {
@@ -37,10 +39,11 @@ router.post("/", async (req, res) => {
     return res.status(200).json({
       accessToken,
     });
-  } catch (error) {
-    if (error.name === "JsonWebTokenError") {
+  } catch (err) {
+    errorLogger(err, req);
+    if (err.name === "JsonWebTokenError") {
       return res.status(401).json({ error: "Unauthorized - Invalid Refresh Token" });
-    } else if (error.name === "TokenExpiredError") {
+    } else if (err.name === "TokenExpiredError") {
       return res.status(401).json({ error: "Unauthorized - Refresh Token Expired" });
     } else {
       return res.status(500).json({ error: "Internal Server Error" });

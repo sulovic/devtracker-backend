@@ -4,13 +4,12 @@ const { PrismaClient } = require("../prisma/client");
 const prisma = new PrismaClient();
 const checkUserRole = require("../middleware/checkUserRole");
 const { minRoles } = require("../config/minRoles");
+const { errorLogger } = require("../middleware/logger");
 
-// const checkUserIssuePermissions = require("../middleware/checkUserIssuePermissions");
+
 
 router.get("/", checkUserRole(minRoles.issues.get), async (req, res, next) => {
   try {
-    // Get query params
-
     const queryParams = req?.query;
     const { sortBy, sortOrder, limit, page, search, ...filters } = queryParams;
     const take = limit ? parseInt(limit) : undefined;
@@ -114,6 +113,7 @@ router.get("/", checkUserRole(minRoles.issues.get), async (req, res, next) => {
 
     res.status(200).json({ data: issues, count: issuesCount });
   } catch (error) {
+    errorLogger(err, req);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -238,6 +238,7 @@ router.get("/:id", checkUserRole(minRoles.issues.get), async (req, res) => {
 
     res.status(200).json(issue);
   } catch (err) {
+    errorLogger(err, req);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -313,6 +314,7 @@ router.post("/", checkUserRole(minRoles.issues.post), async (req, res) => {
     });
     res.status(201).json(issue);
   } catch (err) {
+    errorLogger(err, req);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -436,6 +438,7 @@ router.put("/:id", checkUserRole(minRoles.issues.put), async (req, res) => {
 
     res.status(200).json(issue);
   } catch (err) {
+    errorLogger(err, req);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -468,6 +471,7 @@ router.delete("/:id", checkUserRole(minRoles.issues.delete), async (req, res) =>
 
     res.status(200).json(deletedIssue);
   } catch (err) {
+    errorLogger(err, req);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {

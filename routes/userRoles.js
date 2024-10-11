@@ -4,6 +4,7 @@ const { PrismaClient } = require("../prisma/client");
 const prisma = new PrismaClient();
 const checkUserRole = require("../middleware/checkUserRole");
 const { minRoles } = require("../config/minRoles");
+const { errorLogger } = require("../middleware/logger");
 
 router.get("/", checkUserRole(minRoles.userRoles.get), async (req, res) => {
   try {
@@ -36,6 +37,7 @@ router.get("/", checkUserRole(minRoles.userRoles.get), async (req, res) => {
     });
     res.status(200).json(products);
   } catch (error) {
+    errorLogger(err, req);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {

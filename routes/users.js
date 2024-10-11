@@ -4,6 +4,7 @@ const { PrismaClient } = require("../prisma/client");
 const prisma = new PrismaClient();
 const checkUserRole = require("../middleware/checkUserRole");
 const { minRoles } = require("../config/minRoles");
+const { errorLogger } = require("../middleware/logger");
 
 router.get("/", checkUserRole(minRoles.users.get), async (req, res) => {
   try {
@@ -44,12 +45,13 @@ router.get("/", checkUserRole(minRoles.users.get), async (req, res) => {
                 roleName: true,
               },
             },
-          }
+          },
         },
       },
     });
     res.status(200).json(users);
   } catch (error) {
+    errorLogger(err, req);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -84,6 +86,7 @@ router.get("/:id", checkUserRole(minRoles.users.get), async (req, res) => {
     }
     res.status(200).json(user);
   } catch (err) {
+    errorLogger(err, req);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -114,6 +117,7 @@ router.post("/", checkUserRole(minRoles.users.post), async (req, res) => {
     });
     res.status(201).json(user);
   } catch (err) {
+    errorLogger(err, req);
     if (err.code === "P2002") {
       res.status(409).json({ error: "User already exists" });
     } else {
@@ -159,6 +163,7 @@ router.put("/:id", checkUserRole(minRoles.users.put), async (req, res) => {
 
     res.status(200).json(user);
   } catch (err) {
+    errorLogger(err, req);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
@@ -193,6 +198,7 @@ router.delete("/:id", checkUserRole(minRoles.users.delete), async (req, res) => 
 
     res.status(200).json(deletedUser);
   } catch (err) {
+    errorLogger(err, req);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (prisma) {
